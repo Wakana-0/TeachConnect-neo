@@ -57,21 +57,25 @@ jobs:
         output-file: TeachConnect-neo.exe  # 输出文件名应包含 .exe 扩展名
         onefile: true  # 如果您希望生成一个单独的可执行文件，设置为 true
         standalone: true
-        windows-icon-from-ico: icon.ico
+        windows-icon-from-ico: icon.ico  # 使用 .ico 格式的图标文件
         include-data-dir: |
-          assets=assets
-          pages=pages
-        enable-plugins: PySide6
+          assets=assets  # 包含 assets 文件夹及其内容
+          pages=pages  # 包含 pages 文件夹及其内容
+        enable-plugins: pyside6  # 使用小写的插件名称
         windows-console-mode: attach
         nofollow-import-to: test
 
     - name: Zip the build artifact
       run: |
-        dir '.\build\TeachConnect-neo.dist\*'
-        Compress-Archive -Path '.\build\TeachConnect-neo.dist\*' -DestinationPath 'TeachConnect-neo_build-windows-latest.zip' -Force
+        if (Test-Path -Path '.\build\main.dist\*') {
+          dir '.\build\main.dist\*'
+          Compress-Archive -Path '.\build\main.dist\*' -DestinationPath 'TeachConnect-neo_build-windows-latest.zip' -Force
+        } else {
+          Write-Error "Build artifact not found in .\build\main.dist\*"
+        }
 
     - name: Upload build artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v2
       with:
         name: TeachConnect-neo_build-Windows-latest.zip
         path: TeachConnect-neo_build-windows-latest.zip
