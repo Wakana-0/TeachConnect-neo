@@ -1,41 +1,77 @@
-name: 使用 Nuitka 打包 Python 代码
+name: Build and Package TeachConnect-neo
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
   pull_request:
-    branches:
-      - main
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      build-type:
+        description: 'Build type (Release/Debug)'
+        required: false
+        default: 'Release'
 
 jobs:
-  build-exe:
-    name: 构建独立可执行文件
-    runs-on: ubuntu-latest
+  build:
+    runs-on: windows-latest
 
     steps:
-    - name: 检出代码
-      uses: actions/checkout@v2
+    - name: Checkout source code
+      uses: actions/checkout@v4
 
-    - name: 设置 Python 版本
-      uses: actions/setup-python@v2
+    - name: Set up Python
+      uses: actions/setup-python@v4
       with:
         python-version: '3.12'
 
-    - name: 安装依赖
+    - name: Cache Python dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~\AppData\Local\pip\Cache
+        key: ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-
+          ${{ runner.os }}-python-
+          ${{ runner.os }}-
+
+    - name: Cache Nuitka Dependency Walker
+      uses: actions/cache@v4
+      with:
+        path: C:\Users\runneradmin\AppData\Local\Nuitka\Nuitka\Cache\downloads\depends\x86_64
+        key: ${{ runner.os }}-nuitka-depends-cache-v1
+        restore-keys: |
+          ${{ runner.os }}-nuitka-depends-cache-
+      env:
+        NUITKA_DOWNLOAD_DEPENDS: "yes"
+
+    - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: 使用 Nuitka 打包
-      uses: ex.prefect/nuitka-action@v0.1.5
+    - name: Build with Nuitka
+      uses: Nuitka/Nuitka-Action@v1.2
       with:
-        command: |
-          nuitka --standalone --onefile main.py
-        output-dir: ./dist
+        script-name: main.py
+        output-file: TeachConnect-neo.exe  # 输出文件名应包含 .exe 扩展名
+        onefile: true  # 如果您希望生成一个单独的可执行文件，设置为 true
+        standalone: true
+        windows-icon-from-ico: icon.ico
+        include-data-dir: |
+          assets=assets
+          pages=pages
+        enable-plugins: PySide6
+        windows-console-mode: attach
+        nofollow-import-to: test
 
-    - name: 上传打包结果
-      uses: actions/upload-artifact@v2
+    - name: Zip the build artifact
+      run: |
+        dir '.\build\TeachConnect-neo.dist\*'
+        Compress-Archive -Path '.\build\TeachConnect-neo.dist\*' -DestinationPath 'TeachConnect-neo_build-windows-latest.zip' -Force
+
+    - name: Upload build artifact
+      uses: actions/upload-artifact@v4
       with:
-        name: packaged-app
-        path: ./dist
+        name: TeachConnect-neo_build-Windows-latest.zip
+        path: TeachConnect-neo_build-windows-latest.zip
