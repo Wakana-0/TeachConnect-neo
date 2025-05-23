@@ -54,12 +54,12 @@
     <rect>
      <x>10</x>
      <y>60</y>
-     <width>54</width>
+     <width>131</width>
      <height>16</height>
     </rect>
    </property>
    <property name="text">
-    <string>账户名：</string>
+    <string>输入密码：</string>
    </property>
   </widget>
   <widget class="QLineEdit" name="password_lineEdit">
@@ -71,21 +71,24 @@
      <height>22</height>
     </rect>
    </property>
+   <property name="echoMode">
+    <enum>QLineEdit::EchoMode::Password</enum>
+   </property>
   </widget>
   <widget class="QLabel" name="tips_Label_3">
    <property name="geometry">
     <rect>
      <x>10</x>
      <y>110</y>
-     <width>54</width>
+     <width>111</width>
      <height>16</height>
     </rect>
    </property>
    <property name="text">
-    <string>账户名：</string>
+    <string>再次输入密码：</string>
    </property>
   </widget>
-  <widget class="QLineEdit" name="repassword_lineEdit">
+  <widget class="QLineEdit" name="confirm_password_lineEdit">
    <property name="geometry">
     <rect>
      <x>10</x>
@@ -93,6 +96,9 @@
      <width>321</width>
      <height>22</height>
     </rect>
+   </property>
+   <property name="echoMode">
+    <enum>QLineEdit::EchoMode::Password</enum>
    </property>
   </widget>
  </widget>
