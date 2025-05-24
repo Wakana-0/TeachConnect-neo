@@ -1,10 +1,13 @@
 from PySide6.QtWidgets import QApplication, QMainWindow, QFileDialog, QPushButton, QMessageBox, QComboBox, QLineEdit, QProgressBar, QCommandLinkButton
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtCore import QFile, QDir
-from PySide6.QtGui import QIcon  # 添加QIcon导入
+from PySide6.QtGui import QIcon
 from loguru import logger
-import os
-from datetime import datetime  # 添加datetime导入
+from datetime import datetime
+import hashlib
+# 自制模块导入
+import sender
+from loader import *
 
 # 创建logs文件夹（如果它不存在）
 log_folder = './logs'
@@ -26,6 +29,7 @@ class LoginWindow(QMainWindow):
         self.resize(315, 180)
         self.setWindowTitle("TeachConnect-neo - 登录")
         self.setWindowIcon(QIcon('./assets/icon.png'))  # 设置窗口图标
+        self.add_user_info()
 
     def load_ui(self):
         # 创建一个QUiLoader对象
@@ -78,14 +82,43 @@ class LoginWindow(QMainWindow):
             logger.error("加载UI文件失败")
 
     def login(self):
-        QMessageBox.information(self, "提示", f"功能还在开发中！\n\n"
-                                              f"您输入的账号为：{self.account_selection.currentText()}\n"
-                                              f"您输入的密码为：{self.password_input.text()}")
+        '''登录逻辑'''
+        if self.check_result():
+            QMessageBox.information(self, "提示", f"功能还在开发中！\n\n"
+                                                  f"您输入的账号为：{self.account_selection.currentText()}\n"
+                                                  f"您输入的密码为：{self.password_input.text()}\n"
+                                                  f"账密状态：验证成功")
+        else:
+            QMessageBox.information(self, "提示", f"功能还在开发中！\n\n"
+                                                  f"您输入的账号为：{self.account_selection.currentText()}\n"
+                                                  f"您输入的密码为：{self.password_input.text()}\n"
+                                                  f"账密状态：验证失败")
+            QMessageBox.warning(self, "警告", "账号或密码错误！")
+
+    def check_result(self):
+        '''检查逻辑'''
+        username = self.account_selection.currentText()
+        password = self.password_input.text()
+        password_hash = hashlib.sha256(password.encode("utf-8")).hexdigest()
+        # TODO: 调整回新路径
+        # load_recent_data(USER_CREDENTIALS_FILE)
+        userinfo = load_recent_data(OLD_USER_CREDENTIALS_FILE)
+        if username in userinfo and userinfo[username] == password_hash:
+            return True
+        else:
+            return False
+
+
 
     def open_register_window(self):
         self.register_window = RegisterWindow()
         self.register_window.show()
 
+    def add_user_info(self):
+        acount_list = []
+        for account in load_recent_data(OLD_USER_CREDENTIALS_FILE):
+            acount_list.append(account)
+        self.account_selection.addItems(acount_list)
 
 class RegisterWindow(QMainWindow):
     def __init__(self):
